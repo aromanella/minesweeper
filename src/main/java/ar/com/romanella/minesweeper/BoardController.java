@@ -23,7 +23,7 @@ public class BoardController {
 	
 	@GetMapping("/api/setup")
 	public @ResponseBody ResponseEntity<GameBoard> setup(@RequestParam("x") Integer sizeX, @RequestParam("y") Integer sizeY, @RequestParam("mines") Integer mines) {
-		if (sizeX == null || sizeX < 0 || sizeY == null || sizeY < 0) {
+		if (sizeX == null || sizeX <= 0 || sizeY == null || sizeY <= 0) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 		
@@ -38,9 +38,13 @@ public class BoardController {
 		gb.setCells(new MineCell[sizeX][sizeY]);
 		gb.setCellsCurrent(new String[sizeX][sizeY]);
 		gb.setMines(mines);
-				
-		cells = gb.getCells();
-		cellsCurrent = gb.getCellsCurrent();
+		gb.generateId();
+		String id = gb.getId();
+		
+		this.boards.put(id, gb);
+		
+		MineCell[][] cells = gb.getCells();
+		String[][] cellsCurrent = gb.getCellsCurrent();
 		
 		Random r = new Random(System.currentTimeMillis());
 		List<MineCell> list = new ArrayList<>();
@@ -77,6 +81,8 @@ public class BoardController {
 			i++;
 			j = 0;
 		}
+
+		this.printMaze(id);
 		
 		return new ResponseEntity<>(gb, HttpStatus.OK);
 	}
@@ -98,5 +104,17 @@ public class BoardController {
 
 		return cellsCurrent;
 	}
-
+	
+	public void printMaze(String id) {
+		GameBoard board = this.boards.get(id);
+		MineCell[][] cells = board.getCells();
+		
+		System.out.println();
+		for (MineCell[] cellRow : cells) {
+			for (MineCell cell : cellRow) {
+				System.out.print(cell.isMined() ? "X" : "-");
+			}
+			System.out.println();
+		}
+	}
 }
