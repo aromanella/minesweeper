@@ -19,10 +19,13 @@ public class BoardController {
 
 	MineCell[][] cells;
 
+	String[][] cellsCurrent;
+	
 	@GetMapping("/api/setup")
 	@ResponseBody
 	public String[][] setup(@RequestParam("x") Integer sizeX, @RequestParam("y") Integer sizeY) {
 		cells = new MineCell[sizeX][sizeY];
+		cellsCurrent = new String[sizeX][sizeY];
 		
 		Random r = new Random(System.currentTimeMillis());
 		List<MineCell> list = new ArrayList<>();
@@ -46,6 +49,24 @@ public class BoardController {
 		}
 		
 		return null;
+	}
+	
+	@PostMapping("/api/play")
+	public @ResponseBody String[][] play(@RequestBody MineCell position) {
+		int x = position.getX();
+		int y = position.getY();
+		String cellValue = cellsCurrent[x][y];
+		if ("F".equals(cellValue)) {
+			return cellsCurrent;
+		}
+		
+		MineCell chosenCell = cells[x][y];
+		boolean isMined = true;
+		if (isMined) {
+			// TODO Impl
+		}
+
+		return cellsCurrent;
 	}
 
 }

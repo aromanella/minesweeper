@@ -24,13 +24,30 @@ class App extends Component {
 //                this.setState({message: message});
 //            });
     };
+
+	play = () => {
+		var xPos = 3;	// TODO use real values
+		var yPos = 4;
+		fetch('/api/play', {
+      		  method: 'POST',
+      		  body: JSON.stringify({
+      		    x: xPos,
+      		    y: yPos,
+      		  })
+      		})
+      		.then(res => res.json())
+              .then((data) => {
+                  this.setState({ cells: data })
+                })
+            .catch(console.log);
+	};
     
     render() {
         return (
     		<table className="board">
 				{this.state.cells.map((contact, ind) => (
 					<tr>
-	                    	test
+	                    	this.play();
 					</tr>
 	                ))}
 	        </table>
