@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 /**
  * @author Alejandro Romanella
  */
+@JsonIgnoreProperties({"cells", "mines"})
 public class GameBoard {
 
 	MineCell[][] cells;

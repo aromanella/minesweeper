@@ -1,10 +1,13 @@
 package ar.com.romanella.minesweeper;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,11 @@ import ar.com.romanella.minesweeper.model.BoardOrientation;
 import ar.com.romanella.minesweeper.model.GameBoard;
 import ar.com.romanella.minesweeper.model.MineCell;
 
+/**
+ * 
+ * @author Alejandro Romanella
+ *
+ */
 @RestController
 public class BoardController {
 
@@ -43,7 +51,7 @@ public class BoardController {
 		gb.setMines(mines);
 		gb.generateId();
 		String id = gb.getId();
-
+		
 		gb.setCreationTime(LocalDateTime.now());
 		
 		this.boards.put(id, gb);
@@ -91,7 +99,7 @@ public class BoardController {
 		
 		return new ResponseEntity<>(gb, HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/api/play")
 	public @ResponseBody ResponseEntity<GameBoard> play(@RequestBody MineCell position) {
 		String id = position.getId();
@@ -156,6 +164,24 @@ public class BoardController {
 
 		return cellsCurrent;
 	}
+
+	private void reveal(String id) {
+		GameBoard board = this.boards.get(id);
+		MineCell[][] cells = board.getCells();
+		String[][] cellsCurrent = board.getCellsCurrent();
+		
+		for (MineCell[] cellRow : cells) {
+			for (MineCell cell : cellRow) {
+				int x = cell.getX();
+				int y = cell.getY();
+				if (cell.isMined()) {
+					cellsCurrent[x][y] = "M";
+				} else {
+					this.checkSurroundings(id, cell);
+				}
+			}
+		}
+	}
 	
 	private boolean checkWinConditions(String id) {
 		GameBoard board = this.boards.get(id);
@@ -176,7 +202,7 @@ public class BoardController {
 		
 		return true;
 	}
-	
+
 	private void calculateElapsedTime(GameBoard board) {
 		LocalDateTime started = board.getCreationTime();
 		LocalDateTime now = LocalDateTime.now();
@@ -193,6 +219,76 @@ public class BoardController {
 		board.setElapsedTime(duration);
 	}
 	
+	private void checkSurroundings(String id, MineCell chosenCell) {
+		GameBoard board = this.boards.get(id);
+		MineCell[][] cells = board.getCells();
+		String[][] cellsCurrent = board.getCellsCurrent();
+		
+		int x = chosenCell.getX();
+		int y = chosenCell.getY();
+
+		int xMin = 0;
+		int yMin = 0;
+		int xMax = cells.length;
+		int yMax = cells[0].length;
+
+		int total = this.calculateMinesByPosition(id, x, y, xMin, xMax, yMin, yMax);
+		
+		cellsCurrent[x][y] = String.valueOf(total);
+
+		if (total == 0) {
+			BoardOrientation[] around = BoardOrientation.values();
+			for (BoardOrientation orientation: around) {
+				int xOffset = orientation.getxOffset() + x;
+				int yOffset = orientation.getyOffset() + y;
+				
+				int nextTotal = this.calculateMinesByPosition(id, x, y, xMin, xMax, yMin, yMax);
+				if (nextTotal == 0) {
+					boolean validPosition = (xOffset >= xMin && xOffset < xMax && yOffset >= yMin && yOffset < yMax);
+					if (validPosition) {
+						MineCell nextCell = cells[xOffset][yOffset];
+						if (!nextCell.isProcessed()) {
+							cellsCurrent[xOffset][yOffset] = "0";
+							nextCell.setProcessed(true);
+							
+							checkSurroundings(id, nextCell);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private int calculateMinesByPosition(String id, int x, int y, int xMin, int xMax, int yMin, int yMax) {
+		int total = 0;
+		BoardOrientation[] around = BoardOrientation.values();
+		for (BoardOrientation orientation : around) {
+			boolean isMined = this.isPositionMined(id, orientation, x, y, xMin, xMax, yMin, yMax);
+			if (isMined) {
+				total++;
+			}
+		}
+		
+		return total;
+	}
+	
+	private boolean isPositionMined(String id, BoardOrientation orientation, int x, int y, int xMin, int xMax, int yMin, int yMax) {
+		GameBoard board = this.boards.get(id);
+		MineCell[][] cells = board.getCells();
+		
+		int xOffset = orientation.getxOffset() + x;
+		int yOffset = orientation.getyOffset() + y;
+
+		boolean isMined = false;
+		boolean validPosition = (xOffset >= xMin && xOffset < xMax && yOffset >= yMin && yOffset < yMax);
+		if (validPosition) {
+			MineCell cell = cells[xOffset][yOffset];
+			isMined = cell.isMined();
+		}
+		
+		return isMined;
+	}
+
 	public void printMaze(String id) {
 		GameBoard board = this.boards.get(id);
 		MineCell[][] cells = board.getCells();
