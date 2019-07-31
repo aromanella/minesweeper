@@ -3,16 +3,17 @@ import logo from './logo.svg';
 import './App.css';
 
 class App extends Component {
-	
-    constructor(props) {
+
+	constructor(props) {
 		super(props);
 		this.handleClick = this.handleClick.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
 	}
 	
     state = {
     	cells: [],
     	id: 0,
-		elapsed: '00:00:00',
+    	elapsed: '00:00:00',
     	gameOver: false
     };
 
@@ -32,8 +33,22 @@ class App extends Component {
 //                this.setState({message: message});
 //            });
     };
-  
-	handleClick(e, xPos, yPos) {
+    
+    handleSubmit(e) {
+        e.preventDefault();
+
+        var x = this.refs.xSize.value;
+        var y = this.refs.ySize.value;
+        var mines = this.refs.mines.value;
+        fetch('/api/setup?x=' + x + '&y=' + y + '&mines=' + mines)
+        .then(res => res.json())
+        .then((data) => {
+          this.setState({ cells: data.cellsCurrent, id: data.id, gameOver: false })
+        })
+        .catch(console.log)
+    };
+    
+    handleClick(e, xPos, yPos) {
     	var gameId = this.state.id;
     	if (e.nativeEvent.which === 1) {
     		fetch('/api/play', {
@@ -75,7 +90,7 @@ class App extends Component {
 	        .catch(console.log);
 		}
     }
-  
+
     render() {
     	const isGameOver = this.state.gameOver;
     	let gameStatus = <div></div>;
@@ -100,6 +115,25 @@ class App extends Component {
 
 	            <div class="gameStatus">
 	            	{gameStatus}
+	            </div>
+	            
+	            <div class="controlsDiv">
+	            	<form onSubmit={this.handleSubmit}>
+	            		<label>
+	            			Rows:
+	            			<input ref="xSize" type="text" name="x" defaultValue="7" size="2" />
+	            		</label>
+	            		<label>
+	            			Columns:
+	            			<input ref="ySize" type="text" name="y" defaultValue="7" size="2" />
+	            		</label>
+	            		<label>
+            				Mines:
+            				<input ref="mines" type="text" name="mines" defaultValue="10" size="2" />
+            			</label>
+	            		
+	            		<input type="submit" value="New Game"></input>
+	            	</form>
 	            </div>
             </React.Fragment>
         );

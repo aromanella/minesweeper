@@ -3,6 +3,22 @@ body {
 	margin-top: 20px;
 }
 
+.mainDiv {
+	text-align: center;
+}
+
+.controlsDiv {
+	color: white;
+	text-align: center;
+    margin-top: 15px;
+}
+
+.gameStatus {
+	color: white;
+	text-align: center;
+    margin-top: 15px;
+}
+
 .board {
 	background-color: #C0C0C0;
 	font-weight: bold;
@@ -12,6 +28,20 @@ body {
 
 table, td {
 	border: 1px solid black;
+}
+
+td {
+	cursor: pointer;
+	padding: 10px;
+	font-size: 42px;
+	text-align: center;
+	width: 35px;
+	border-color: #797A75;
+	border-style: inset;
+}
+
+.n0 div {
+	visibility: hidden;
 }
 
 .n1 {
@@ -44,4 +74,52 @@ table, td {
 
 .n8 {
 	color: #78787B;
+}
+
+td:not (.nE ) {
+	box-shadow: inset 0 0 7px #000;
+}
+
+.nE {
+	box-shadow: inset 0 0 7px #FFF;
+}
+
+.nE div {
+	visibility: hidden;
+}
+
+.nM {
+	background-color: black;
+	background-image: url("img/Mine_048x048_32.png");
+	background-repeat: no-repeat;
+	background-position-x: 4px;
+	background-position-y: 9px;
+}
+
+.nM div {
+	visibility: hidden;
+}
+
+.nB {
+	background-color: red;
+	background-image: url("img/Mine_048x048_32.png");
+	background-repeat: no-repeat;
+	background-position-x: 4px;
+	background-position-y: 9px;
+}
+
+.nB div {
+	visibility: hidden;
+}
+
+.nF {
+	background-image: url("img/flag.ico");
+	background-repeat: no-repeat;
+	background-position-x: 2px;
+	background-position-y: 10px;
+	background-size: 49px;
+}
+
+.nF div {
+	visibility: hidden;
 }
