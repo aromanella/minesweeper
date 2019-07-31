@@ -14,6 +14,8 @@ public class GameBoard {
 	String[][] cellsCurrent;
 
 	boolean gameOver;
+	
+	int mines;
 
 	public MineCell[][] getCells() {
 		return cells;
@@ -39,4 +41,11 @@ public class GameBoard {
 		this.gameOver = gameOver;
 	}
 
+	public int getMines() {
+		return mines;
+	}
+
+	public void setMines(int mines) {
+		this.mines = mines;
+	}
 }

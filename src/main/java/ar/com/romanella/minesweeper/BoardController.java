@@ -22,15 +22,30 @@ public class BoardController {
 	String[][] cellsCurrent;
 	
 	@GetMapping("/api/setup")
-	@ResponseBody
-	public String[][] setup(@RequestParam("x") Integer sizeX, @RequestParam("y") Integer sizeY) {
-		cells = new MineCell[sizeX][sizeY];
-		cellsCurrent = new String[sizeX][sizeY];
+	public @ResponseBody ResponseEntity<GameBoard> setup(@RequestParam("x") Integer sizeX, @RequestParam("y") Integer sizeY, @RequestParam("mines") Integer mines) {
+		if (sizeX == null || sizeX < 0 || sizeY == null || sizeY < 0) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+		
+		int totalCells = sizeX * sizeY;
+		if (mines == null || mines >= totalCells) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+		
+		GameBoard gb = new GameBoard();
+		gb.setGameOver(false);
+		
+		gb.setCells(new MineCell[sizeX][sizeY]);
+		gb.setCellsCurrent(new String[sizeX][sizeY]);
+		gb.setMines(mines);
+				
+		cells = gb.getCells();
+		cellsCurrent = gb.getCellsCurrent();
 		
 		Random r = new Random(System.currentTimeMillis());
 		List<MineCell> list = new ArrayList<>();
-
-		for (int counter = 1; counter <= 10; counter++) {
+		
+		for (int counter = 1; counter <= mines; counter++) {
 			int x = r.nextInt(sizeX);
 			int y = r.nextInt(sizeY);
 			MineCell mc = new MineCell(true, x, y);
@@ -47,8 +62,23 @@ public class BoardController {
 			int y = mineCell.getY();
 			cells[x][y] = mineCell;
 		}
+
+		int i = 0;
+		int j = 0;
+		for (MineCell[] cellRow : cells) {
+			for (MineCell cell : cellRow) {
+				if (cell == null) {
+					cells[i][j] = new MineCell(false, i, j);
+				}
+				cellsCurrent[i][j] = "E";
+
+				j++;
+			}
+			i++;
+			j = 0;
+		}
 		
-		return null;
+		return new ResponseEntity<>(gb, HttpStatus.OK);
 	}
 	
 	@PostMapping("/api/play")
