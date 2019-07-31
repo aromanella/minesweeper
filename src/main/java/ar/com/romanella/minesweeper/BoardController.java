@@ -1,9 +1,13 @@
 package ar.com.romanella.minesweeper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,14 +16,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import ar.com.romanella.minesweeper.model.BoardOrientation;
+import ar.com.romanella.minesweeper.model.GameBoard;
 import ar.com.romanella.minesweeper.model.MineCell;
 
 @RestController
 public class BoardController {
 
-	MineCell[][] cells;
-
-	String[][] cellsCurrent;
+	private Map<String, GameBoard> boards = new HashMap<>();
 	
 	@GetMapping("/api/setup")
 	public @ResponseBody ResponseEntity<GameBoard> setup(@RequestParam("x") Integer sizeX, @RequestParam("y") Integer sizeY, @RequestParam("mines") Integer mines) {
