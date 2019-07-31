@@ -1,3 +1,47 @@
 body {
-  background-color: black;
+	background-color: black;
+	margin-top: 20px;
+}
+
+.board {
+	background-color: #C0C0C0;
+	font-weight: bold;
+	text-align: left;
+	margin: 0 auto;
+}
+
+table, td {
+	border: 1px solid black;
+}
+
+.n1 {
+	color: #1616BD;
+}
+
+.n2 {
+	color: #1F5F1E;
+}
+
+.n3 {
+	color: #EB090E;
+}
+
+.n4 {
+	color: #080A67;
+}
+
+.n5 {
+	color: #751014;
+}
+
+.n6 {
+	color: #13796B;
+}
+
+.n7 {
+	color: #060300;
+}
+
+.n8 {
+	color: #78787B;
 }

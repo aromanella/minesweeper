@@ -4,8 +4,14 @@ import './App.css';
 
 class App extends Component {
 	
+    constructor(props) {
+		super(props);
+		this.handleClick = this.handleClick.bind(this);
+	}
+	
     state = {
-    	cells: []
+    	cells: [],
+    	id: 0
     };
 
     componentDidMount() {
@@ -13,10 +19,10 @@ class App extends Component {
     }
 
     startGame = () => {
-        fetch('/api/setup?x=5&y=5')
+        fetch('/api/setup?x=7&y=7&mines=10')
         .then(res => res.json())
         .then((data) => {
-          this.setState({ cells: data })
+          this.setState({ cells: data.cellsCurrent, id: data.id })
         })
         .catch(console.log)
 //            .then(response => response.text())
@@ -41,16 +47,41 @@ class App extends Component {
                 })
             .catch(console.log);
 	};
-    
+  
+	handleClick(xPos, yPos) {
+    	var gameId = this.state.id;
+    	fetch('/api/play', {
+      		  method: 'POST',
+      		  headers: {
+      		      'Accept': 'application/json',
+      		      'Content-Type': 'application/json'
+      		  },
+      		  body: JSON.stringify({
+      			id: gameId,
+      		    x: xPos,
+      		    y: yPos,
+      		  })
+      		})
+      		.then(res => res.json())
+              .then((data) => {
+                  this.setState({ cells: data })
+                })
+            .catch(console.log);
+    }
+  
     render() {
         return (
-    		<table className="board">
+        	<table className="board">
 				{this.state.cells.map((contact, ind) => (
 					<tr>
-	                    	this.play();
+						{contact.map((subcontact, ind2) => (
+						  <td className={'n' + subcontact} onClick={(e) => this.handleClick(ind, ind2)}>
+							{subcontact}
+						  </td>
+						))}
 					</tr>
-	                ))}
-	        </table>
+				))}
+			</table>
         );
     }
 }
