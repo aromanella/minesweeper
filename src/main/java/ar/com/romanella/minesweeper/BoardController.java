@@ -102,10 +102,58 @@ public class BoardController {
 		MineCell chosenCell = cells[x][y];
 		boolean isMined = true;
 		if (isMined) {
-			// TODO Impl
+			cellsCurrent[x][y] = "B";
+		} else {
+			boolean flag = this.checkWinConditions(id);
+			board.setGameOver(flag);
 		}
 
 		return cellsCurrent;
+	}
+
+	@PostMapping("/api/flag")
+	public @ResponseBody String[][] flag(@RequestBody MineCell position) {
+		String id = position.getId();
+		GameBoard board = this.boards.get(id);
+		
+		boolean gameOver = board.isGameOver();
+		String[][] cellsCurrent = board.getCellsCurrent();
+		
+		if (gameOver) {
+			return cellsCurrent;
+		}
+		
+		int x = position.getX();
+		int y = position.getY();
+		
+		String chosenCell = cellsCurrent[x][y];
+		if ("E".equals(chosenCell)) {
+			cellsCurrent[x][y] = "F";
+		} else if ("F".equals(chosenCell)) {
+			cellsCurrent[x][y] = "E";
+		}
+
+		return cellsCurrent;
+	}
+	
+	private boolean checkWinConditions(String id) {
+		GameBoard board = this.boards.get(id);
+		MineCell[][] cells = board.getCells();
+		String[][] cellsCurrent = board.getCellsCurrent();
+		
+		for (MineCell[] cellRow : cells) {
+			for (MineCell cell : cellRow) {
+				int x = cell.getX();
+				int y = cell.getY();
+				String value = cellsCurrent[x][y];
+				if ("E".equals(value) && !cell.isMined()) {
+					return false;
+				}
+			}
+		}
+		System.out.println("WON !");
+		
+		return true;
 	}
 	
 	public void printMaze(String id) {

@@ -48,9 +48,10 @@ class App extends Component {
             .catch(console.log);
 	};
   
-	handleClick(xPos, yPos) {
+	handleClick(e, xPos, yPos) {
     	var gameId = this.state.id;
-    	fetch('/api/play', {
+    	if (e.nativeEvent.which === 1) {
+    		fetch('/api/play', {
       		  method: 'POST',
       		  headers: {
       		      'Accept': 'application/json',
@@ -67,6 +68,27 @@ class App extends Component {
                   this.setState({ cells: data })
                 })
             .catch(console.log);
+		} else if (e.nativeEvent.which === 3) {
+			e.preventDefault();
+			
+			fetch('/api/flag', {
+	      		  method: 'POST',
+	      		  headers: {
+	      		      'Accept': 'application/json',
+	      		      'Content-Type': 'application/json'
+	      		  },
+	      		  body: JSON.stringify({
+	      			id: gameId,
+	      		    x: xPos,
+	      		    y: yPos,
+	      		  })
+	      		})
+	      	.then(res => res.json())
+	              .then((data) => {
+	                  this.setState({ cells: data })
+	                })
+	        .catch(console.log);
+		}
     }
   
     render() {
@@ -75,9 +97,9 @@ class App extends Component {
 				{this.state.cells.map((contact, ind) => (
 					<tr>
 						{contact.map((subcontact, ind2) => (
-						  <td className={'n' + subcontact} onClick={(e) => this.handleClick(ind, ind2)}>
-							{subcontact}
-						  </td>
+						  <td className={'n' + subcontact} onClick={(e) => this.handleClick(e, ind, ind2)} onContextMenu={(e) => this.handleClick(e, ind, ind2)}>
+							<div>{subcontact}</div>
+	                      </td>
 						))}
 					</tr>
 				))}
