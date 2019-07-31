@@ -11,7 +11,9 @@ class App extends Component {
 	
     state = {
     	cells: [],
-    	id: 0
+    	id: 0,
+		elapsed: '00:00:00',
+    	gameOver: false
     };
 
     componentDidMount() {
@@ -22,7 +24,7 @@ class App extends Component {
         fetch('/api/setup?x=7&y=7&mines=10')
         .then(res => res.json())
         .then((data) => {
-          this.setState({ cells: data.cellsCurrent, id: data.id })
+          this.setState({ cells: data.cellsCurrent, id: data.id, gameOver: false })
         })
         .catch(console.log)
 //            .then(response => response.text())
@@ -30,23 +32,6 @@ class App extends Component {
 //                this.setState({message: message});
 //            });
     };
-
-	play = () => {
-		var xPos = 3;	// TODO use real values
-		var yPos = 4;
-		fetch('/api/play', {
-      		  method: 'POST',
-      		  body: JSON.stringify({
-      		    x: xPos,
-      		    y: yPos,
-      		  })
-      		})
-      		.then(res => res.json())
-              .then((data) => {
-                  this.setState({ cells: data })
-                })
-            .catch(console.log);
-	};
   
 	handleClick(e, xPos, yPos) {
     	var gameId = this.state.id;
@@ -65,7 +50,7 @@ class App extends Component {
       		})
       		.then(res => res.json())
               .then((data) => {
-                  this.setState({ cells: data })
+                  this.setState({ cells: data.cellsCurrent, elapsed: data.elapsedTime, gameOver: data.gameOver })
                 })
             .catch(console.log);
 		} else if (e.nativeEvent.which === 3) {
@@ -92,18 +77,31 @@ class App extends Component {
     }
   
     render() {
+    	const isGameOver = this.state.gameOver;
+    	let gameStatus = <div></div>;
+    	if (isGameOver) {
+    		gameStatus = <div><label>Game Over&nbsp;</label><label>{this.state.elapsed}</label></div>;
+    	}
         return (
-        	<table className="board">
-				{this.state.cells.map((contact, ind) => (
-					<tr>
-						{contact.map((subcontact, ind2) => (
-						  <td className={'n' + subcontact} onClick={(e) => this.handleClick(e, ind, ind2)} onContextMenu={(e) => this.handleClick(e, ind, ind2)}>
-							<div>{subcontact}</div>
-	                      </td>
-						))}
-					</tr>
-				))}
-			</table>
+    		<React.Fragment>
+	        	<div className="mainDiv">
+	                <table className="board">
+	                {this.state.cells.map((contact, ind) => (
+	                    <tr>
+	                    	{contact.map((subcontact, ind2) => (
+	                          <td className={'n' + subcontact} onClick={(e) => this.handleClick(e, ind, ind2)} onContextMenu={(e) => this.handleClick(e, ind, ind2)}>
+	                          	<div>{subcontact}</div>
+	                          </td>
+	                        ))}
+	                    </tr>
+	                ))}
+	                </table>
+	            </div>
+
+	            <div class="gameStatus">
+	            	{gameStatus}
+	            </div>
+            </React.Fragment>
         );
     }
 }

@@ -43,6 +43,8 @@ public class BoardController {
 		gb.setMines(mines);
 		gb.generateId();
 		String id = gb.getId();
+
+		gb.setCreationTime(LocalDateTime.now());
 		
 		this.boards.put(id, gb);
 		
@@ -91,24 +93,43 @@ public class BoardController {
 	}
 	
 	@PostMapping("/api/play")
-	public @ResponseBody String[][] play(@RequestBody MineCell position) {
+	public @ResponseBody ResponseEntity<GameBoard> play(@RequestBody MineCell position) {
+		String id = position.getId();
+		GameBoard board = this.boards.get(id);
+
+		
+		boolean gameOver = board.isGameOver();
+		MineCell[][] cells = board.getCells();
+		String[][] cellsCurrent = board.getCellsCurrent();
+		if (gameOver) {
+			return new ResponseEntity<>(board, HttpStatus.OK);
+		}
+		
 		int x = position.getX();
 		int y = position.getY();
 		String cellValue = cellsCurrent[x][y];
 		if ("F".equals(cellValue)) {
-			return cellsCurrent;
+			return new ResponseEntity<>(board, HttpStatus.OK);
 		}
 		
+		this.calculateElapsedTime(board);
+		
 		MineCell chosenCell = cells[x][y];
-		boolean isMined = true;
+		boolean isMined = chosenCell.isMined();
 		if (isMined) {
+			this.reveal(id);
+			
 			cellsCurrent[x][y] = "B";
+
+			board.setGameOver(true);
+			
 		} else {
+			this.checkSurroundings(id, chosenCell);
 			boolean flag = this.checkWinConditions(id);
 			board.setGameOver(flag);
 		}
 
-		return cellsCurrent;
+		return new ResponseEntity<>(board, HttpStatus.OK);
 	}
 
 	@PostMapping("/api/flag")
@@ -154,6 +175,22 @@ public class BoardController {
 		System.out.println("WON !");
 		
 		return true;
+	}
+	
+	private void calculateElapsedTime(GameBoard board) {
+		LocalDateTime started = board.getCreationTime();
+		LocalDateTime now = LocalDateTime.now();
+		
+		Duration dur = Duration.between(started, now);
+		long millis = dur.toMillis();
+		String duration = String.format("%02d:%02d:%02d", 
+		        TimeUnit.MILLISECONDS.toHours(millis),
+		        TimeUnit.MILLISECONDS.toMinutes(millis) - 
+		        TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(millis)),
+		        TimeUnit.MILLISECONDS.toSeconds(millis) - 
+		        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis)));
+		
+		board.setElapsedTime(duration);
 	}
 	
 	public void printMaze(String id) {

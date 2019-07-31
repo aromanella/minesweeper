@@ -17,6 +17,10 @@ public class GameBoard {
 	
 	int mines;
 
+	LocalDateTime creationTime;
+
+	String elapsedTime;
+	
 	public MineCell[][] getCells() {
 		return cells;
 	}
@@ -47,5 +51,21 @@ public class GameBoard {
 
 	public void setMines(int mines) {
 		this.mines = mines;
+	}
+	
+		public LocalDateTime getCreationTime() {
+		return creationTime;
+	}
+
+	public void setCreationTime(LocalDateTime creationTime) {
+		this.creationTime = creationTime;
+	}
+
+	public String getElapsedTime() {
+		return elapsedTime;
+	}
+
+	public void setElapsedTime(String elapsedTime) {
+		this.elapsedTime = elapsedTime;
 	}
 }
