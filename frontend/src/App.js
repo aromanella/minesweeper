@@ -8,6 +8,7 @@ class App extends Component {
 		super(props);
 		this.handleClick = this.handleClick.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleLoad = this.handleLoad.bind(this);
 	}
 	
     state = {
@@ -47,6 +48,19 @@ class App extends Component {
         })
         .catch(console.log)
     };
+    
+    handleLoad(e) {
+        e.preventDefault();
+        
+        var gameId = this.refs.gameId.value;
+        
+        fetch('/api/loadGame?id=' + gameId)
+        .then(res => res.json())
+        .then((data) => {
+          this.setState({ cells: data.cellsCurrent, id: data.id, gameOver: data.gameOver })
+        })
+        .catch(console.log)
+    }
     
     handleClick(e, xPos, yPos) {
     	var gameId = this.state.id;
@@ -95,7 +109,7 @@ class App extends Component {
     	const isGameOver = this.state.gameOver;
     	let gameStatus = <div></div>;
     	if (isGameOver) {
-    		gameStatus = <div><label>Game Over&nbsp;</label><label>{this.state.elapsed}</label></div>;
+    		gameStatus = <div><label>Game Over&nbsp;</label><label>{this.state.elapsed}</label>&nbsp;<label>Game Id (to use Load option): {this.state.id}</label></div>;
     	}
         return (
     		<React.Fragment>
@@ -133,6 +147,16 @@ class App extends Component {
             			</label>
 	            		
 	            		<input type="submit" value="New Game"></input>
+	            	</form>
+	            </div>
+	            
+	            <div class="controlsDiv">
+	            	<form onSubmit={this.handleLoad}>
+	            		<label>
+	            		Game Id:
+	            			<input ref="gameId" type="text" name="gameId" />
+	            		</label>
+	            		<input type="submit" value="Load Game"></input>
 	            	</form>
 	            </div>
             </React.Fragment>
