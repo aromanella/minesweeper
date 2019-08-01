@@ -2,7 +2,7 @@
 A Minesweeper implementation in Java + React, made by Alejandro Romanella
 
 ## Operation
-The project requires maven and npm. To run it execute the following commands:
+The project requires maven and npm. To run it, execute the following commands:
 ```
 mvn clean install
 java -jar target/minesw-0.0.1-SNAPSHOT.jar
@@ -24,6 +24,7 @@ This is the list of future fixes and general pendings:
 - Add Spring Security to manage user identification and use a human readable id to identify a game state.
 - Add a caching mechanism for removing old games from memory after a proper amount of time.
 - Add responsive capabilities to adjust game field according to its size.
+- Add JUnit testing to the APIs.
 
 ## API endpoints
 
