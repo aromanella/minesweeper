@@ -14,6 +14,7 @@ import ar.com.romanella.minesweeper.model.GameBoard;
 @Repository
 public class BoardRepositoryImpl implements BoardRepository {
 
+	//	TODO pass this to Spring properties file, or embed in webserver properties
 	private MongoClient mongoClient = new MongoClient("localhost", 27017);
 	
 	@Override

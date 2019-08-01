@@ -37,6 +37,21 @@ public class BoardController {
 	
 	private Map<String, GameBoard> boards = new HashMap<>();
 	
+	//	TODO convert these constants to an enum
+	private static final String MINED = "M";
+	private static final String EMPTY = "E";
+	private static final String BOMB = "B";
+	private static final String FLAG = "F";
+	
+	/**
+	 * This webservice setups a new game from the scratch given the (validated) input parameters.
+	 * A UUID is generated as the id for the game which is used to identify the gaming session.
+	 * 
+	 * @param sizeX	The number of rows
+	 * @param sizeY The number of columns
+	 * @param mines The number of mines
+	 * @return
+	 */
 	@GetMapping("/api/setup")
 	public @ResponseBody ResponseEntity<GameBoard> setup(@RequestParam("x") Integer sizeX, @RequestParam("y") Integer sizeY, @RequestParam("mines") Integer mines) {
 		if (sizeX == null || sizeX <= 0 || sizeY == null || sizeY <= 0) {
@@ -92,7 +107,7 @@ public class BoardController {
 				if (cell == null) {
 					cells[i][j] = new MineCell(false, i, j);
 				}
-				cellsCurrent[i][j] = "E";
+				cellsCurrent[i][j] = EMPTY;
 
 				j++;
 			}
@@ -105,6 +120,13 @@ public class BoardController {
 		return new ResponseEntity<>(gb, HttpStatus.OK);
 	}
 
+	/**
+	 * Entrypoint for playing the game. Will flag the game as over if a bomb is clicked or if the game is won.
+	 * In case of game over, the game is automatically saved for future reviewing.
+	 * 
+	 * @param position Represents the coordinates of the cell clicked by the player
+	 * @return
+	 */
 	@PostMapping("/api/play")
 	public @ResponseBody ResponseEntity<GameBoard> play(@RequestBody MineCell position) {
 		String id = position.getId();
@@ -120,7 +142,7 @@ public class BoardController {
 		int x = position.getX();
 		int y = position.getY();
 		String cellValue = cellsCurrent[x][y];
-		if ("F".equals(cellValue)) {
+		if (FLAG.equals(cellValue)) {
 			return new ResponseEntity<>(board, HttpStatus.OK);
 		}
 		
@@ -131,7 +153,7 @@ public class BoardController {
 		if (isMined) {
 			this.reveal(id);
 			
-			cellsCurrent[x][y] = "B";
+			cellsCurrent[x][y] = BOMB;
 
 			board.setGameOver(true);
 			
@@ -150,6 +172,12 @@ public class BoardController {
 		return new ResponseEntity<>(board, HttpStatus.OK);
 	}
 
+	/**
+	 * This entrypoint will flag or unflag a gameboard cell, only if it wasn't uncovered in the first place.
+	 * 
+	 * @param position	The coordinates for the cell that was selected to be flagged
+	 * @return
+	 */
 	@PostMapping("/api/flag")
 	public @ResponseBody String[][] flag(@RequestBody MineCell position) {
 		String id = position.getId();
@@ -166,15 +194,22 @@ public class BoardController {
 		int y = position.getY();
 		
 		String chosenCell = cellsCurrent[x][y];
-		if ("E".equals(chosenCell)) {
-			cellsCurrent[x][y] = "F";
-		} else if ("F".equals(chosenCell)) {
-			cellsCurrent[x][y] = "E";
+		if (EMPTY.equals(chosenCell)) {
+			cellsCurrent[x][y] = FLAG;
+		} else if (FLAG.equals(chosenCell)) {
+			cellsCurrent[x][y] = EMPTY;
 		}
 
 		return cellsCurrent;
 	}
 	
+	/**
+	 * 	Entrypoint to load an old game board. The full UUID must be completed in order to find the game.
+	 * 	TODO	Implement proper resume logic
+	 * 
+	 * @param id	The game id that was previously saved
+	 * @return
+	 */
 	@GetMapping("/api/loadGame")
 	public @ResponseBody ResponseEntity<GameBoard> loadGame(@RequestParam String id) {
 		GameBoard board = this.boardService.loadGame(id.trim());
@@ -185,6 +220,11 @@ public class BoardController {
 		return new ResponseEntity<>(board, HttpStatus.OK);
 	}
 
+	/**
+	 * Reveal the selected cell. If it has no mines, recursively reveal all of the surrounding ones.
+	 * 
+	 * @param id
+	 */
 	private void reveal(String id) {
 		GameBoard board = this.boards.get(id);
 		MineCell[][] cells = board.getCells();
@@ -195,7 +235,7 @@ public class BoardController {
 				int x = cell.getX();
 				int y = cell.getY();
 				if (cell.isMined()) {
-					cellsCurrent[x][y] = "M";
+					cellsCurrent[x][y] = MINED;
 				} else {
 					this.checkSurroundings(id, cell);
 				}
@@ -203,6 +243,12 @@ public class BoardController {
 		}
 	}
 	
+	/**
+	 * Detects if a game is in a winning state
+	 * 
+	 * @param id
+	 * @return
+	 */
 	private boolean checkWinConditions(String id) {
 		GameBoard board = this.boards.get(id);
 		MineCell[][] cells = board.getCells();
@@ -213,16 +259,20 @@ public class BoardController {
 				int x = cell.getX();
 				int y = cell.getY();
 				String value = cellsCurrent[x][y];
-				if ("E".equals(value) && !cell.isMined()) {
+				if (EMPTY.equals(value) && !cell.isMined()) {
 					return false;
 				}
 			}
 		}
-		System.out.println("WON !");
 		
 		return true;
 	}
 
+	/**
+	 * Sets the total elapsed time since the board was created.
+	 * 
+	 * @param board
+	 */
 	private void calculateElapsedTime(GameBoard board) {
 		LocalDateTime started = board.getCreationTime();
 		LocalDateTime now = LocalDateTime.now();
@@ -309,6 +359,9 @@ public class BoardController {
 		return isMined;
 	}
 
+	/**
+	 * Test method used to check solution
+	 */
 	public void printMaze(String id) {
 		GameBoard board = this.boards.get(id);
 		MineCell[][] cells = board.getCells();
