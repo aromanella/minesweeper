@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ar.com.romanella.minesweeper.model.BoardOrientation;
 import ar.com.romanella.minesweeper.model.GameBoard;
 import ar.com.romanella.minesweeper.model.MineCell;
+import ar.com.romanella.minesweeper.service.BoardService;
 
 /**
  * 
@@ -30,6 +32,9 @@ import ar.com.romanella.minesweeper.model.MineCell;
 @RestController
 public class BoardController {
 
+	@Autowired
+	private BoardService boardService;
+	
 	private Map<String, GameBoard> boards = new HashMap<>();
 	
 	@GetMapping("/api/setup")
@@ -104,7 +109,6 @@ public class BoardController {
 	public @ResponseBody ResponseEntity<GameBoard> play(@RequestBody MineCell position) {
 		String id = position.getId();
 		GameBoard board = this.boards.get(id);
-
 		
 		boolean gameOver = board.isGameOver();
 		MineCell[][] cells = board.getCells();
@@ -131,10 +135,16 @@ public class BoardController {
 
 			board.setGameOver(true);
 			
+			this.boardService.saveGame(board);
+			
 		} else {
 			this.checkSurroundings(id, chosenCell);
 			boolean flag = this.checkWinConditions(id);
 			board.setGameOver(flag);
+			
+			if (flag) {
+				this.boardService.saveGame(board);
+			}
 		}
 
 		return new ResponseEntity<>(board, HttpStatus.OK);
@@ -163,6 +173,16 @@ public class BoardController {
 		}
 
 		return cellsCurrent;
+	}
+	
+	@GetMapping("/api/loadGame")
+	public @ResponseBody ResponseEntity<GameBoard> loadGame(@RequestParam String id) {
+		GameBoard board = this.boardService.loadGame(id.trim());
+		if (board == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+		
+		return new ResponseEntity<>(board, HttpStatus.OK);
 	}
 
 	private void reveal(String id) {
@@ -300,5 +320,21 @@ public class BoardController {
 			}
 			System.out.println();
 		}
+	}
+
+	public BoardService getBoardService() {
+		return boardService;
+	}
+
+	public void setBoardService(BoardService boardService) {
+		this.boardService = boardService;
+	}
+
+	public Map<String, GameBoard> getBoards() {
+		return boards;
+	}
+
+	public void setBoards(Map<String, GameBoard> boards) {
+		this.boards = boards;
 	}
 }

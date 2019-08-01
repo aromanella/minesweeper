@@ -1,6 +1,9 @@
 package ar.com.romanella.minesweeper.model;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
+
+import org.springframework.data.annotation.Transient;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -10,6 +13,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties({"cells", "mines"})
 public class GameBoard {
 
+	String id;
+	
+	@Transient
 	MineCell[][] cells;
 
 	String[][] cellsCurrent;
@@ -17,7 +23,7 @@ public class GameBoard {
 	boolean gameOver;
 	
 	int mines;
-
+	
 	LocalDateTime creationTime;
 
 	String elapsedTime;
@@ -46,6 +52,18 @@ public class GameBoard {
 		this.gameOver = gameOver;
 	}
 
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public void generateId() {
+		this.id = UUID.randomUUID().toString();
+	}
+
 	public int getMines() {
 		return mines;
 	}
@@ -53,8 +71,8 @@ public class GameBoard {
 	public void setMines(int mines) {
 		this.mines = mines;
 	}
-	
-		public LocalDateTime getCreationTime() {
+
+	public LocalDateTime getCreationTime() {
 		return creationTime;
 	}
 
@@ -69,4 +87,5 @@ public class GameBoard {
 	public void setElapsedTime(String elapsedTime) {
 		this.elapsedTime = elapsedTime;
 	}
+	
 }
